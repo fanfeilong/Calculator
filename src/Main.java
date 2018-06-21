@@ -7,12 +7,57 @@ import java.lang.Exception;
 public class Main {
 
     private static String[] op = { "+", "-", "*", "/" };// Operation set
+
     public static void main(String[] args) {
-        System.out.println(args);
-        String question = String.join("",args);
+        // 解析命令行参数        
+        String[] options = ParseOptions(args);
+        String question = options[0];
+        String answer = options[1];
+
+        // 计算表达式
         System.out.println("question from commandline:"+question);
-        String ret = Solve(question);
-        System.out.println(ret);
+        String[] ret = Solve(question);
+        
+
+        // 比对计算结果
+        CheckResult(question, answer, ret);
+    }
+
+    public static String[] ParseOptions(String[] args){
+        String[] result = new String[2];
+        for(int i=0;i<args.length;i++){
+            if(args[i].equals("-q")){
+                result[0] = args[i+1];
+                i++;
+            }else if(args[i].equals("-a")){
+                if(args.length>i+1){
+                    result[1] = args[i+1];
+                    i++;
+                }
+            }
+        }
+        return result;
+    }
+
+    public static void CheckResult(String question, String answer, String[] ret){
+        String errorMsg = ret[0];
+        String result = ret[1];
+
+        if(errorMsg!=null){
+            System.out.println("[error] solve:"+question + "=" + result+", calc error:"+errorMsg);
+            System.exit(1);
+        }else{
+            if(answer==null){
+                System.out.println(question + "=" + result);
+            }else{
+                if(result.equals(answer)){
+                    System.out.println("[info] solve:"+question + "=" + result+", answer matched:"+answer);
+                }else{
+                    System.out.println("[error] solve:"+question + "=" + result+", answer not matched:"+answer);
+                    System.exit(1);
+                }
+            }
+        }
     }
 
     public static String MakeFormula(){
@@ -69,7 +114,9 @@ public class Main {
         }
     }
 
-    public static String Solve(String formula){
+    public static String[] Solve(String formula){
+        String[] result = new String[2];
+
         Stack<String> tempStack = new Stack<>();//Store number or operator
         Stack<Character> operatorStack = new Stack<>();//Store operator
         int len = formula.length();
@@ -141,13 +188,16 @@ public class Main {
                         try{
                             calcStack.push(String.valueOf(a1 / b1));
                         }catch(ArithmeticException e){
-                            return "ERROR:"+a1+"/ 0 is not allowed.";
+                            result[0] = "ERROR:"+a1+"/ 0 is not allowed.";
+                            return result;
                         }
                         
                         break;
                 }
             }
         }
-        return formula + "=" + calcStack.pop();
+        
+        result[1] = calcStack.pop();
+        return result;
     }
 }
